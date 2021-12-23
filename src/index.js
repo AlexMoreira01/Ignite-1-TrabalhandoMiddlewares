@@ -10,19 +10,80 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+
+  const user = users.find(user => user.username === username);
+
+  if(!user){
+    return response.status(404).json({
+      error: "user not found"
+    })
+  }
+
+  request.user = user;
+
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request
+
+  if(!user.pro && user.todos.length < 10){
+    return next();
+  }else if (user.pro){
+    return next();
+  }else{
+    return response.status(403).json({
+      error: "Usuario possui mais de 10 todos ou nao é pro"
+    })
+  }
+  
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const user = users.find((user) => user.username === username);
+
+  if(!user){
+    return response.status(404).json({
+      error : "Usuario nao encontrado"
+    });
+  }
+
+  const chekUuid = validate(id);
+  if(!chekUuid){
+    return response.status(400).json({
+      error : "O id nao é uudi"
+    });
+  }
+
+  const todo = user.todos.find((todo)=> todo.id === id);
+  //                            esse todo é o todos/ o que a variavel recebe como o que é usado antes do .id deve ser iguais se for diferente nao funciona
+  if(!todo){
+    return response.status(404).json({
+      error : "Todo não encontrado"
+    });
+  }
+
+  request.user = user;
+  request.todo = todo;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const userID = users.find((idUser) => idUser.id === id)
+  if(!userID){
+    return response.status(404).json({
+      error: "Usuario nao existente"
+    })
+  }
+  request.user = userID;
+  return next()
 }
 
 app.post('/users', (request, response) => {
